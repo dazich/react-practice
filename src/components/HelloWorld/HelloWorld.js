@@ -1,18 +1,24 @@
 
 import React, { Component } from 'react';
+import './HelloWorld.less'
 class HelloWorld extends Component{
     constructor(props) {
         super(props);
 
         this.state = {
-            message: 'hello dada'
+            sum: 2
         }
+    }
+
+    add = () => {
+        const {sum} = this.state;
+        this.setState({sum: sum + 1})
     }
 
     render() {
         return (
-            <div>
-                {this.state.message}
+            <div className="root" onClick={this.add}>
+                sum : {this.state.sum}
             </div>
         )
     }

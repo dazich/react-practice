@@ -14,17 +14,34 @@ module.exports = {
     output: {
         filename: "js/[name].bundle.js",
         path: path.resolve(__dirname, 'dist'),
+        chunkFilename: '[name].bundle.js',
     },
     devServer: {
         contentBase: './dist',   // 不写也能正常运行
         hot: true
     },
 
+    resolve: { // 指定第三方库目录，减少webpack寻找时间
+        modules: [path.resolve(__dirname, './node_modules')],
+    },
+
     module: {
         rules: [
             {
-                test: /\.css$/,
-                loader: ['style-loader', 'css-loader']
+                test: /\.(css|less|styl|scss|sass|sss)$/,
+                use: [
+                    'style-loader',
+                    { loader: 'css-loader', options: { importLoaders: 1 } },
+                    'less-loader',
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            config: {
+                                path: './postcss.config.js',
+                            },
+                        },
+                    },
+                ]
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
@@ -45,6 +62,19 @@ module.exports = {
             template: 'index.html'
         }),
         new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin()
-    ]
+        new webpack.HotModuleReplacementPlugin(),
+
+    ],
+
+    // optimization: {
+    //     splitChunks: {
+    //         cacheGroups: {
+    //             commons: {
+    //                 test: /[\\/]node_modules[\\/]/,
+    //                 name: "vendors",
+    //                 chunks: "all"
+    //             }
+    //         }
+    //     }
+    // }
 }
