@@ -1,7 +1,7 @@
 
 import React, { Component } from 'react';
-import './HelloWorld.less'
-class HelloWorld extends Component{
+import './index.less'
+class Index extends Component{
     constructor(props) {
         super(props);
 
@@ -24,4 +24,4 @@ class HelloWorld extends Component{
     }
 }
 
-export default HelloWorld;
+export default Index;
