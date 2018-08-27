@@ -2,8 +2,9 @@
 
 
 1. 基本webpack4环境搭建  react HMR等 √
-2. react router4 redux √
+2. react-router4 redux √
 3. ssr
+4. docker
 
 
 todo
