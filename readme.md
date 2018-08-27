@@ -3,7 +3,8 @@
 
 1. 基本webpack4环境搭建  react HMR等 √
 2. react router4 redux √
+3. ssr
 
 
 todo
-1. HMR 完善
+1. HMR 完善 √
