@@ -18,7 +18,7 @@ class Index extends Component{
     render() {
         return (
             <div className="root" onClick={this.add}>
-                sum : {this.state.sum}
+                Home
             </div>
         )
     }

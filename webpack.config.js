@@ -3,6 +3,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const webpack = require('webpack');
+const isDebug = !process.argv.includes('--release');
+
+console.log(isDebug)
 
 module.exports = {
     mode: 'development',
@@ -15,10 +18,16 @@ module.exports = {
         filename: "js/[name].bundle.js",
         path: path.resolve(__dirname, 'dist'),
         chunkFilename: '[name].bundle.js',
+        publicPath: "/"
     },
     devServer: {
-        contentBase: './dist',   // 不写也能正常运行
-        hot: true
+        // https://webpack.js.org/configuration/dev-server/#devserver-historyapifallback
+        // When using the HTML5 History API, the index.html page will likely have to be served in place of any 404 responses.Enable this by passing true
+        historyApiFallback: true,
+
+        contentBase: path.join(__dirname, 'dist'),   // 不写也能正常运行
+        hot: true,
+        port: 9000
     },
 
     resolve: { // 指定第三方库目录，减少webpack寻找时间

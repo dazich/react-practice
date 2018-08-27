@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "dev": "webpack-dev-server --open",
+    "dev": "webpack-dev-server",
     "server": "node server.js"
   },
   "author": "",
@@ -62,10 +62,15 @@
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
+    "connected-react-router": "^4.4.1",
     "express": "^4.16.3",
     "koa": "^2.5.2",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
-    "react-router": "^4.3.1"
+    "react-hot-loader": "^4.3.5",
+    "react-redux": "^5.0.7",
+    "react-router": "^4.3.1",
+    "react-router-dom": "^4.3.1",
+    "redux": "^4.0.0"
   }
 }
