@@ -25,7 +25,7 @@ class Index extends Component{
     render() {
         return (
             <div className="root" onClick={this.add}>
-                desc : {this.props.count}
+                desc-as- : {this.props.count}
             </div>
         )
     }

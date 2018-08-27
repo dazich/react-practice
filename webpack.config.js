@@ -5,8 +5,6 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const webpack = require('webpack');
 const isDebug = !process.argv.includes('--release');
 
-console.log(isDebug)
-
 module.exports = {
     mode: 'development',
     entry: {
@@ -40,7 +38,7 @@ module.exports = {
                 test: /\.(css|less|styl|scss|sass|sss)$/,
                 use: [
                     'style-loader',
-                    { loader: 'css-loader', options: { importLoaders: 1 } },
+                    'css-loader',
                     'less-loader',
                     {
                         loader: 'postcss-loader',
@@ -71,8 +69,7 @@ module.exports = {
             template: 'index.html'
         }),
         new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
-
+        // new webpack.HotModuleReplacementPlugin(),    // 加了这个之后HMR！！！可能是和react-hot-loader冲突了吧
     ],
 
     // optimization: {
