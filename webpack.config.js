@@ -1,34 +1,32 @@
-// 自带的库
+
 const path = require('path');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const webpack = require('webpack');
+
+const isAnalyze = process.argv.includes('--analyze') || process.argv.includes('--analyse');
 const isDebug = !process.argv.includes('--release');
 
 module.exports = {
     mode: 'development',
     entry: {
-        app: './src/index.js',
+        index: './src/index.js',
     },
 
-    devtool: 'inline-source-map',
+    // Choose a developer tool to enhance debugging
+    // https://webpack.js.org/configuration/devtool/#devtool
+    devtool: isDebug ? 'inline-source-map' : 'source-map',
     output: {
         filename: "js/[name].bundle.js",
         path: path.resolve(__dirname, 'dist'),
-        chunkFilename: '[name].bundle.js',
+        chunkFilename: '[name].chunk.js',
         publicPath: "/"
     },
-    devServer: {
-        // https://webpack.js.org/configuration/dev-server/#devserver-historyapifallback
-        // When using the HTML5 History API, the index.html page will likely have to be served in place of any 404 responses.Enable this by passing true
-        historyApiFallback: true,
 
-        contentBase: path.join(__dirname, 'dist'),   // 不写也能正常运行
-        hot: true,
-        port: 9000
-    },
 
-    resolve: { // 指定第三方库目录，减少webpack寻找时间
+    resolve: {
+        // 指定第三方库目录，减少webpack寻找时间
         modules: [path.resolve(__dirname, './node_modules')],
     },
 
@@ -68,19 +66,49 @@ module.exports = {
             title: 'output test',
             template: 'index.html'
         }),
-        new webpack.NamedModulesPlugin(),
-        // new webpack.HotModuleReplacementPlugin(),    // 加了这个之后HMR！！！可能是和react-hot-loader冲突了吧
+
+        // 使用了react-hot-loader而不是webpack的HMR
+        // new webpack.NamedModulesPlugin(),
+        // new webpack.HotModuleReplacementPlugin(),    // 加了这个之后HMR异常！！！可能是和react-hot-loader冲突了吧
+
+
+        ...(isDebug ?
+            [
+                new webpack.NamedModulesPlugin(),
+            ]
+            : []),
+
+        // Webpack Bundle Analyzer
+        // https://github.com/th0r/webpack-bundle-analyzer
+        ...(isAnalyze ? [new BundleAnalyzerPlugin()] : []),
     ],
 
-    // optimization: {
-    //     splitChunks: {
-    //         cacheGroups: {
-    //             commons: {
-    //                 test: /[\\/]node_modules[\\/]/,
-    //                 name: "vendors",
-    //                 chunks: "all"
-    //             }
-    //         }
-    //     }
-    // }
+    // Move modules that occur in multiple entry chunks to a new entry chunk (the commons chunk).
+    optimization: {
+        minimize: !isDebug,
+        splitChunks: {
+            cacheGroups: {
+                commons: {
+                    chunks: 'all',
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+                },
+            },
+        },
+    },
+
+    ...(isDebug ?
+        {
+
+            devServer: isDebug ? {
+                // https://webpack.js.org/configuration/dev-server/#devserver-historyapifallback
+                // When using the HTML5 History API, the index.html page will likely have to be served in place of any 404 responses.Enable this by passing true
+                historyApiFallback: true,
+
+                contentBase: path.join(__dirname, 'dist'),   // 不写也能正常运行
+                hot: true,
+                port: 9000
+            } : null,
+        }
+     : [])
 }

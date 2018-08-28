@@ -6,9 +6,6 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
 
-
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import routeConfig from './routes'
 import App from './App';
 import rootReducer from './reducers'
 
@@ -22,9 +19,11 @@ ReactDOM.render(
 // ReactDOM.render(<App/>, document.getElementById('app'));
 
 // import(/* webpackChunkName: "lodash" */ './components/sum').then(f => console.log(f));
+// 动态导入APP.js时会提示 NODE_ENV 不是 production
 
-if (module.hot) {
-    module.hot.accept('./App', () => {
-        console.log('==============Accepting the updated printMe module!');
-    })
-}
+// 与react-hot-loader冲突
+// if (module.hot) {
+//     module.hot.accept('./App', () => {
+//         console.log('==============Accepting the updated printMe module!');
+//     })
+// }
