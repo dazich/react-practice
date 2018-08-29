@@ -3,6 +3,7 @@ import { Router, Route, Switch } from "react-router-dom";
 import { hot } from 'react-hot-loader'
 import routes from './routes'
 import history from './utils/history'
+import {cube} from './math'
 
 // wrap <Route> and use this everywhere instead, then when
 // sub routes are added to any route it'll work
@@ -19,6 +20,7 @@ const RouteWithSubRoutes = route => (
 class App extends Component{
     constructor(props) {
         super(props);
+        console.info(cube(123))
     }
 
     render() {

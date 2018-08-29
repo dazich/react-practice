@@ -9,7 +9,7 @@ const isAnalyze = process.argv.includes('--analyze') || process.argv.includes('-
 const isDebug = !process.argv.includes('--release');
 
 module.exports = {
-    mode: 'development',
+    mode: isDebug ? 'development' : 'production',
     entry: {
         index: './src/index.js',
     },
