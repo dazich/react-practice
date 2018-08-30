@@ -11,7 +11,7 @@ const isDebug = !process.argv.includes('--release');
 module.exports = {
     mode: isDebug ? 'development' : 'production',
     entry: {
-        index: './src/index.js',
+        index: './server.js',
     },
 
     // Choose a developer tool to enhance debugging
@@ -62,10 +62,10 @@ module.exports = {
 
     plugins: [
         new CleanWebpackPlugin(['dist']),
-        new HtmlWebpackPlugin({
-            title: 'output test',
-            template: 'index.html'
-        }),
+        // new HtmlWebpackPlugin({
+        //     title: 'output test',
+        //     template: 'index.html'
+        // }),
 
         // 使用了react-hot-loader而不是webpack的HMR
         // new webpack.NamedModulesPlugin(),
@@ -89,7 +89,7 @@ module.exports = {
         splitChunks: {
             cacheGroups: {
                 commons: {
-                    chunks: 'all',
+                    chunks: 'initial',
                     test: /[\\/]node_modules[\\/]/,
                     name: 'vendors',
                 },

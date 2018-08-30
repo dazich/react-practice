@@ -3,5 +3,7 @@
 .idea
 .vscode/*
 
+dist/
+
 # Dependencies
 node_modules/

@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { Router, Route, Switch } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import { hot } from 'react-hot-loader'
 import routes from './routes'
-import history from './utils/history'
 import {cube} from './math'
 
 // wrap <Route> and use this everywhere instead, then when
@@ -25,11 +24,9 @@ class App extends Component{
 
     render() {
         return (
-            <Router history={history}>
-                <Switch>
-                    {routes.map((route, i) => <RouteWithSubRoutes key={i} {...route} />)}
-                </Switch>
-            </Router>
+            <Switch>
+                {routes.map((route, i) => <RouteWithSubRoutes key={i} {...route} />)}
+            </Switch>
         )
     }
 }

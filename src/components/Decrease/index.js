@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import './index.less'
+// import './index.less'
 import {add} from '../../actions'
 
 class Index extends Component{

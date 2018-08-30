@@ -2,9 +2,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import './index.less'
+// import './index.less'
 import {add} from '../../actions'
-import history from '../../utils/history'
+// import history from '../../utils/history'
 
 class Index extends Component{
     static propTypes = {
@@ -14,7 +14,7 @@ class Index extends Component{
     constructor(props) {
         super(props);
 
-        console.log(this.props)
+        console.log('add:::',this.props)
     }
 
     add = () => {
@@ -26,9 +26,9 @@ class Index extends Component{
     render() {
         return (
             <div className="root">
-                <p onClick={this.add}>sum: {this.props.count}</p>
+                <p onClick={() => {console.log(12039)}}>sum: {this.props.count}</p>
 
-                <div className="btn" onClick={() => history.push('/decrease')}>to desc</div>
+                <div className="btn" >to desc</div>
             </div>
         )
     }
