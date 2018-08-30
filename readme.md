@@ -5,7 +5,11 @@
 2. react-router4 redux √
 2.5 redux与request的处理（soga？）
 3. ssr
-4. docker
+3.0 简单ssr √
+4. 学习react-starter-kit
+4.1 开发环境下
+4.2 生产环境下
+5. docker
 
 
 todo
