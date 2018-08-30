@@ -8,7 +8,8 @@
     "build": "webpack",
     "build-s": "webpack --release --analyse",
     "dev": "webpack-dev-server --hot",
-    "server": "nodemon --exec babel-node server.js"
+    "server": "nodemon --exec babel-node server.js",
+    "start": "babel-node tools/start"
   },
   "author": "",
   "license": "ISC",
