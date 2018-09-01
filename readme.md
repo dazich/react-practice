@@ -7,7 +7,7 @@
 3. ssr
 3.0 简单ssr √
 4. 学习react-starter-kit
-4.1 开发环境下
+4.1 开发环境下(webpack hmr)
 4.2 生产环境下
 5. docker
 

@@ -1,5 +1,5 @@
 export function square(x) {
-    return x * x;
+    return x * x + 1;
 }
 
 export function cube(x) {

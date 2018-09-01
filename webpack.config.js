@@ -11,7 +11,7 @@ const isDebug = !process.argv.includes('--release');
 module.exports = {
     mode: isDebug ? 'development' : 'production',
     entry: {
-        index: './server.js',
+        index: './src/index.js',
     },
 
     // Choose a developer tool to enhance debugging
@@ -62,10 +62,10 @@ module.exports = {
 
     plugins: [
         new CleanWebpackPlugin(['dist']),
-        // new HtmlWebpackPlugin({
-        //     title: 'output test',
-        //     template: 'index.html'
-        // }),
+        new HtmlWebpackPlugin({
+            title: 'output test',
+            template: 'index.html'
+        }),
 
         // 使用了react-hot-loader而不是webpack的HMR
         // new webpack.NamedModulesPlugin(),
@@ -106,7 +106,7 @@ module.exports = {
                 historyApiFallback: true,
 
                 contentBase: path.join(__dirname, 'dist'),   // 不写也能正常运行
-                hot: true,
+                // hot: true,
                 port: 9000
             } : null,
         }
