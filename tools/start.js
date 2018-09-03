@@ -13,7 +13,12 @@ const isDebug = !process.argv.includes('--release');
 
 function createCompilationPromise(name, compiler, config) {
     return new Promise(((resolve, reject) => {
+        console.info('【createCompilationPromise】', name)
         let timeStart = new Date();
+        compiler.hooks.failed.tap(name, error => {
+            timeStart = new Date();
+            console.info(`[${format(timeStart)}] Failed to compile '${name}'>>>`, error)
+        })
         compiler.hooks.compile.tap(name, () => {
             timeStart = new Date();
             console.info(`[${format(timeStart)}] Compiling '${name}'...`)
@@ -42,8 +47,6 @@ function createCompilationPromise(name, compiler, config) {
 
 async function start() {
     // TODO 1.开发模式下启动webpack-dev-middleware，需要一个新的server来处理这个middleware并把老server也当middleware加进去，生产环境则不需要。
-    const startTime = new Date().getTime();
-
     let server = express();
     // server.use(express.static(path.resolve(__dirname, '../public')));
 
@@ -59,8 +62,8 @@ async function start() {
 
     // server
     const serverConfig = webpackConfig.find(config => config.name === 'server');
-    // serverConfig.output.hotUpdateMainFilename = 'updates/[hash].hot-update.json';
-    // serverConfig.output.hotUpdateChunkFilename = 'updates/[id].[hash].hot-update.js';
+    serverConfig.output.hotUpdateMainFilename = 'updates/[hash].hot-update.json';
+    serverConfig.output.hotUpdateChunkFilename = 'updates/[id].[hash].hot-update.js';
     serverConfig.module.rules = serverConfig.module.rules.filter(
         x => x.loader !== 'null-loader',
     );
@@ -69,21 +72,22 @@ async function start() {
     // 开始打包
     await run(clean);
     const multiCompiler = webpack(webpackConfig);
+    const serverCompiler = multiCompiler.compilers.find(
+        compiler => compiler.name === 'server',
+    );
     const clientCompiler = multiCompiler.compilers.find(
         compiler => compiler.name === 'client',
     );
-    const serverCompiler = multiCompiler.compilers.find(
-        compiler => compiler.name === 'server',
+    // console.info('serverCompiler::::', serverCompiler)
+    const serverPromise = createCompilationPromise(
+        'server',
+        serverCompiler,
+        serverConfig,
     );
     const clientPromise = createCompilationPromise(
         'client',
         clientCompiler,
         clientConfig,
-    );
-    const serverPromise = createCompilationPromise(
-        'server',
-        serverCompiler,
-        serverConfig,
     );
 
     // https://github.com/webpack/webpack-dev-middleware
@@ -105,6 +109,7 @@ async function start() {
     let appPromiseResolve;
     let appPromiseIsResolved = true;
     serverCompiler.hooks.compile.tap('server', () => {
+        console.info('【serverCompiler.hooks.compile...】')
         if (!appPromiseIsResolved) return;
         appPromiseIsResolved = false;
         // eslint-disable-next-line no-return-assign
@@ -113,59 +118,60 @@ async function start() {
 
 
     // TODO
-    // function checkForUpdate(fromUpdate) {
-    //     const hmrPrefix = '[\x1b[35mHMR\x1b[0m] ';
-    //     if (!app.hot) {
-    //         throw new Error(`${hmrPrefix}Hot Module Replacement is disabled.`);
-    //     }
-    //     if (app.hot.status() !== 'idle') {
-    //         return Promise.resolve();
-    //     }
-    //     return app.hot
-    //         .check(true)
-    //         .then(updatedModules => {
-    //             if (!updatedModules) {
-    //                 if (fromUpdate) {
-    //                     console.info(`${hmrPrefix}Update applied.`);
-    //                 }
-    //                 return;
-    //             }
-    //             if (updatedModules.length === 0) {
-    //                 console.info(`${hmrPrefix}Nothing hot updated.`);
-    //             } else {
-    //                 console.info(`${hmrPrefix}Updated modules:`);
-    //                 updatedModules.forEach(moduleId =>
-    //                     console.info(`${hmrPrefix} - ${moduleId}`),
-    //                 );
-    //                 checkForUpdate(true);
-    //             }
-    //         })
-    //         .catch(error => {
-    //             if (['abort', 'fail'].includes(app.hot.status())) {
-    //                 console.warn(`${hmrPrefix}Cannot apply update.`);
-    //                 delete require.cache[require.resolve('../build/server')];
-    //                 // eslint-disable-next-line global-require, import/no-unresolved
-    //                 app = require('../build/server').default;
-    //                 console.warn(`${hmrPrefix}App has been reloaded.`);
-    //             } else {
-    //                 console.warn(
-    //                     `${hmrPrefix}Update failed: ${error.stack || error.message}`,
-    //                 );
-    //             }
-    //         });
-    // }
-    //
-    // serverCompiler.watch(watchOptions, (error, stats) => {
-    //     if (app && !error && !stats.hasErrors()) {
-    //         checkForUpdate().then(() => {
-    //             appPromiseIsResolved = true;
-    //             appPromiseResolve();
-    //         });
-    //     }
-    // });
+    function checkForUpdate(fromUpdate) {
+        const hmrPrefix = '[\x1b[35mHMR\x1b[0m] ';
+        if (!app.hot) {
+            throw new Error(`${hmrPrefix}Hot Module Replacement is disabled.`);
+        }
+        if (app.hot.status() !== 'idle') {
+            return Promise.resolve();
+        }
+        return app.hot
+            .check(true)
+            .then(updatedModules => {
+                if (!updatedModules) {
+                    if (fromUpdate) {
+                        console.info(`${hmrPrefix}Update applied.`);
+                    }
+                    return;
+                }
+                if (updatedModules.length === 0) {
+                    console.info(`${hmrPrefix}Nothing hot updated.`);
+                } else {
+                    console.info(`${hmrPrefix}Updated modules:`);
+                    updatedModules.forEach(moduleId =>
+                        console.info(`${hmrPrefix} - ${moduleId}`),
+                    );
+                    checkForUpdate(true);
+                }
+            })
+            .catch(error => {
+                if (['abort', 'fail'].includes(app.hot.status())) {
+                    console.warn(`${hmrPrefix}Cannot apply update.`);
+                    delete require.cache[require.resolve('../build/server')];
+                    // eslint-disable-next-line global-require, import/no-unresolved
+                    app = require('../build/server').default;
+                    console.warn(`${hmrPrefix}App has been reloaded.`);
+                } else {
+                    console.warn(
+                        `${hmrPrefix}Update failed: ${error.stack || error.message}`,
+                    );
+                }
+            });
+    }
+
+    serverCompiler.watch({}, (error, stats) => {
+        if (app && !error && !stats.hasErrors()) {
+            checkForUpdate().then(() => {
+                appPromiseIsResolved = true;
+                appPromiseResolve();
+            });
+        }
+    });
 
     // Wait until both client-side and server-side bundles are ready
     await clientPromise;
+    console.info('serverPromise should start...', serverCompiler.name)
     await serverPromise;
 
     const timeStart = new Date();
@@ -183,21 +189,21 @@ async function start() {
     appPromiseResolve();
 
     // Launch the development server with Browsersync and HMR
-    await new Promise((resolve, reject) =>
-      browserSync.create().init(
-        {
-          // https://www.browsersync.io/docs/options
-          server: 'src/server.js',
-          middleware: [server],
-          open: false && !process.argv.includes('--silent'),
-          ...(isDebug ? {} : { notify: false, ui: false }),
-        },
-        (error, bs) => (error ? reject(error) : resolve(bs)),
-      ),
-    );
+    // await new Promise((resolve, reject) =>
+    //   browserSync.create().init(
+    //     {
+    //       // https://www.browsersync.io/docs/options
+    //       server: 'src/server.js',
+    //       middleware: [server],
+    //       open: false && !process.argv.includes('--silent'),
+    //       ...(isDebug ? {} : { notify: false, ui: false }),
+    //     },
+    //     (error, bs) => (error ? reject(error) : resolve(bs)),
+    //   ),
+    // );
 
     // TODO
-    // server.listen(8888, () => {console.info('listening at 8888...')})
+    server.listen(3000, () => {console.info('listening at 3000...')})
 
     const timeEnd = new Date();
     const time = timeEnd.getTime() - timeStart.getTime();

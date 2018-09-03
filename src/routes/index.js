@@ -9,19 +9,26 @@ const NoMatch = ({ location }) => (
     </div>
 );
 
+function getSomeData() {
+    console.info('getSomeData...')
+}
+
 export default [
     {
         path: "/",
         exact: true,
-        component: Add
+        component: Add,
+        loadData: () => getSomeData()
     },
     {
         path: "/decrease",
         exact: true,
-        component: Decrease
+        component: Decrease,
+        loadData: () => getSomeData()
     },
     {
         exact: true,
-        component: NoMatch
+        component: NoMatch,
+        loadData: () => getSomeData()
     },
 ];

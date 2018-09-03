@@ -7,13 +7,21 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import 'whatwg-fetch';
 import React from 'react';
-import router from './router';
+import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+
+ReactDOM.render((
+    <BrowserRouter>
+        <App/>
+    </BrowserRouter>
+), document.getElementById('app'))
+
 
 // Enable Hot Module Replacement (HMR)
-if (module.hot) {
-    module.hot.accept('./router', () => {
-      console.info(123)
-    });
-}
+// if (module.hot) {
+//     module.hot.accept('./router', () => {
+//       console.info(123)
+//     });
+// }

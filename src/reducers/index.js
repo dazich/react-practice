@@ -1,6 +1,6 @@
 
 const initialState = {
-    count: 0
+    count: 1112222
 }
 const add = (state = initialState, action) => {
     console.log(state, action)

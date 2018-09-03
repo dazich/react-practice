@@ -14,7 +14,7 @@ class Index extends Component{
     constructor(props) {
         super(props);
 
-        console.log('add:::',this.props)
+        console.log('add:::',this.props.add)
     }
 
     add = () => {
@@ -27,7 +27,6 @@ class Index extends Component{
         return (
             <div className="root">
                 <p onClick={() => {console.log(12039)}}>sum: {this.props.count}</p>
-
                 <div className="btn" >to desc</div>
             </div>
         )

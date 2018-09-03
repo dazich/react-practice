@@ -9,31 +9,50 @@
 
 import path from 'path';
 import express from 'express';
-import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
-import expressJwt, { UnauthorizedError as Jwt401Error } from 'express-jwt';
-import { graphql } from 'graphql';
-import expressGraphQL from 'express-graphql';
-import jwt from 'jsonwebtoken';
+// import cookieParser from 'cookie-parser';
+// import bodyParser from 'body-parser';
+// import expressJwt, { UnauthorizedError as Jwt401Error } from 'express-jwt';
+// import { graphql } from 'graphql';
+// import expressGraphQL from 'express-graphql';
+// import jwt from 'jsonwebtoken';
 import nodeFetch from 'node-fetch';
 import React from 'react';
+import { StaticRouter } from 'react-router';
 import ReactDOM from 'react-dom/server';
 import PrettyError from 'pretty-error';
-import App from './components/App';
 import Html from './components/Html';
 import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
-// import errorPageStyle from './routes/error/ErrorPage.css';
+import errorPageStyle from './routes/error/ErrorPage.css';
 // import createFetch from './createFetch';
-// import passport from './passport';
-import router from './router';
 // import assets from './asset-manifest.json'; // eslint-disable-line import/no-unresolved
 import chunks from './chunk-manifest.json'; // eslint-disable-line import/no-unresolved
 // import config from './config';
 
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import { Route, Switch, matchPath } from "react-router-dom";
+import App from './App';
+import rootReducer from './reducers'
+import routes from './routes';
+
+const store = createStore(rootReducer)
+
+// wrap <Route> and use this everywhere instead, then when
+// sub routes are added to any route it'll work
+const RouteWithSubRoutes = route => (
+    <Route
+        path={route.path}
+        render={props => (
+            // pass the sub-routes down to keep nesting
+            <route.component {...props} routes={route.routes} />
+        )}
+    />
+);
+
 process.on('unhandledRejection', (reason, p) => {
-  console.error('Unhandled Rejection at:', p, 'reason:', reason);
-  // send entire app down. Process manager will restart it
-  process.exit(1);
+    console.error('Unhandled Rejection at:', p, 'reason:', reason);
+    // send entire app down. Process manager will restart it
+    process.exit(1);
 });
 
 //
@@ -49,72 +68,90 @@ const app = express();
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
 app.get('*', async (req, res, next) => {
-  try {
-    const css = new Set();
+    try {
+        const css = new Set();
 
-    // Enables critical path CSS rendering
-    // https://github.com/kriasoft/isomorphic-style-loader
-    const insertCss = (...styles) => {
-      // eslint-disable-next-line no-underscore-dangle
-      styles.forEach(style => css.add(style._getCss()));
-    };
+        // Enables critical path CSS rendering
+        // https://github.com/kriasoft/isomorphic-style-loader
+        const insertCss = (...styles) => {
+            // eslint-disable-next-line no-underscore-dangle
+            styles.forEach(style => css.add(style._getCss()));
+        };
 
-    // Universal HTTP client
-    const fetch = createFetch(nodeFetch, {
-      // baseUrl: config.api.serverUrl,
-      // cookie: req.headers.cookie,
-      // schema,
-      // graphql,
-    });
+        // Universal HTTP client
+        // const fetch = createFetch(nodeFetch, {
+        //   baseUrl: config.api.serverUrl,
+        //   cookie: req.headers.cookie,
+        //   schema,
+        //   graphql,
+        // });
 
-    // Global (context) variables that can be easily accessed from any React component
-    // https://facebook.github.io/react/docs/context.html
-    const context = {
-      insertCss,
-      // fetch,
-      // The twins below are wild, be careful!
-      pathname: req.path,
-      query: req.query,
-    };
+        // Global (context) variables that can be easily accessed from any React component
+        // https://facebook.github.io/react/docs/context.html
+        const context = {
+            // insertCss,
+            // fetch,
+            // The twins below are wild, be careful!
+            pathname: req.path,
+            query: req.query,
+        };
 
-    const route = await router.resolve(context);
+        const data = {};
+        data.children = ReactDOM.renderToString(
+            <Provider store={store}>
+                <StaticRouter
+                    location={req.url}
+                    context={context}
+                >
+                    <Switch>
+                        {routes.map((route, i) => <RouteWithSubRoutes key={i} {...route} />)}
+                    </Switch>
+                </StaticRouter>
+            </Provider>
+        );
+        // data.styles = [{ id: 'css', cssText: [...css].join('') }];
 
-    if (route.redirect) {
-      res.redirect(route.status || 302, route.redirect);
-      return;
+        const scripts = new Set();
+        const addChunk = chunk => {
+          if (chunks[chunk]) {
+            chunks[chunk].forEach(asset => scripts.add(asset));
+          } else if (__DEV__) {
+            throw new Error(`Chunk with name '${chunk}' cannot be found`);
+          }
+        };
+        addChunk('client');
+        // if (route.chunk) addChunk(route.chunk);
+        // if (route.chunks) route.chunks.forEach(addChunk);
+        // data.scripts = Array.from(scripts);
+
+        // data.app = {
+        //   apiUrl: config.api.clientUrl,
+        // };
+
+        const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
+
+        // inside a request
+        const promises = []
+// use `some` to imitate `<Switch>` behavior of selecting only
+// the first to match
+        routes.some(route => {
+            // use `matchPath` here
+            console.info('route',route)
+            const match = matchPath(req.path, route)
+            if (match)
+                promises.push(route.loadData(match))
+            return match
+        })
+
+        Promise.all(promises).then(data => {
+            // do something w/ the data so the client
+            // can access it then render the app
+        })
+        // res.status(route.status || 200);
+        res.send(`<!doctype html>${html}`);
+    } catch (err) {
+        next(err);
     }
-
-    const data = { ...route };
-    data.children = ReactDOM.renderToString(
-      <App context={context}>{route.component}</App>,
-    );
-    data.styles = [{ id: 'css', cssText: [...css].join('') }];
-
-    const scripts = new Set();
-    const addChunk = chunk => {
-      if (chunks[chunk]) {
-        chunks[chunk].forEach(asset => scripts.add(asset));
-      } else if (__DEV__) {
-        throw new Error(`Chunk with name '${chunk}' cannot be found`);
-      }
-    };
-    addChunk('client');
-    if (route.chunk) addChunk(route.chunk);
-    if (route.chunks) route.chunks.forEach(addChunk);
-
-    console.info('scripts::::', scripts)
-
-    data.scripts = Array.from(scripts);
-    // data.app = {
-    //   apiUrl: config.api.clientUrl,
-    // };
-
-    const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
-    res.status(route.status || 200);
-    res.send(`<!doctype html>${html}`);
-  } catch (err) {
-    next(err);
-  }
 });
 
 //
@@ -126,18 +163,18 @@ pe.skipPackage('express');
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error(pe.render(err));
-  const html = ReactDOM.renderToStaticMarkup(
-    <Html
-      title="Internal Server Error"
-      description={err.message}
-      styles={[{ id: 'css', cssText: errorPageStyle._getCss() }]} // eslint-disable-line no-underscore-dangle
-    >
-      {ReactDOM.renderToString(<ErrorPageWithoutStyle error={err} />)}
-    </Html>,
-  );
-  res.status(err.status || 500);
-  res.send(`<!doctype html>${html}`);
+    console.error(pe.render(err));
+    const html = ReactDOM.renderToStaticMarkup(
+        <Html
+            title="Internal Server Error"
+            description={err.message}
+            styles={[{ id: 'css', cssText: errorPageStyle._getCss() }]} // eslint-disable-line no-underscore-dangle
+        >
+        {ReactDOM.renderToString(<ErrorPageWithoutStyle error={err} />)}
+        </Html>,
+    );
+    res.status(err.status || 500);
+    res.send(`<!doctype html>${html}`);
 });
 
 //
@@ -145,11 +182,11 @@ app.use((err, req, res, next) => {
 // -----------------------------------------------------------------------------
 // const promise = models.sync().catch(err => console.error(err.stack));
 if (!module.hot) {
-  // promise.then(() => {
+    // promise.then(() => {
     app.listen(3000, () => {
-      console.info(`The server is running at http://localhost:3000/`);
+        console.info(`The server is running at http://localhost:3000/`);
     });
-  // });
+    // });
 }
 
 //

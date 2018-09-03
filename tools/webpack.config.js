@@ -21,6 +21,7 @@ const BUILD_DIR = resolvePath('build');
 
 const isAnalyze = process.argv.includes('--analyze') || process.argv.includes('--analyse');
 const isDebug = !process.argv.includes('--release');
+const isVerbose = process.argv.includes('--verbose');
 
 const reScript = /\.(js|jsx|mjs)$/;
 const reStyle = /\.(css|less|styl|scss|sass|sss)$/;
@@ -64,31 +65,31 @@ const config = {
                     cacheDirectory: isDebug,
 
                     // https://babeljs.io/docs/usage/options/
-                    babelrc: false,
+                    // babelrc: false,
                     presets: [
                         // A Babel preset that can automatically determine the Babel plugins and polyfills
                         // https://github.com/babel/babel-preset-env
-                        [
-                            '@babel/preset-env',
-                            {
-                                targets: {
-                                    browsers: pkg.browserslist,
-                                },
-                                forceAllTransforms: !isDebug, // for UglifyJS
-                                modules: false,
-                                useBuiltIns: false,
-                                debug: false,
-                            },
-                        ],
+                        // [
+                        //     '@babel/preset-env',
+                        //     {
+                        //         targets: {
+                        //             browsers: pkg.browserslist,
+                        //         },
+                        //         forceAllTransforms: !isDebug, // for UglifyJS
+                        //         modules: false,
+                        //         useBuiltIns: false,
+                        //         debug: false,
+                        //     },
+                        // ],
                         // Experimental ECMAScript proposals
                         // https://babeljs.io/docs/plugins/#presets-stage-x-experimental-presets-
-                        ['@babel/preset-stage-2', { decoratorsLegacy: true }],
+                        // ['@babel/preset-stage-2', { decoratorsLegacy: true }],
                         // Flow
                         // https://github.com/babel/babel/tree/master/packages/babel-preset-flow
-                        '@babel/preset-flow',
+                        // '@babel/preset-flow',
                         // JSX
                         // https://github.com/babel/babel/tree/master/packages/babel-preset-react
-                        ['@babel/preset-react', { development: isDebug }],
+                        // ['@babel/preset-react', { development: isDebug }],
                     ],
                     plugins: [
                         // Treat React JSX elements as value types and hoist them to the highest scope
@@ -252,6 +253,20 @@ const config = {
     // TODO cache?
     cache: isDebug,
 
+    // Specify what bundle information gets displayed
+    // https://webpack.js.org/configuration/stats/
+    stats: {
+        cached: isVerbose,
+        cachedAssets: isVerbose,
+        chunks: isVerbose,
+        chunkModules: isVerbose,
+        colors: true,
+        hash: isVerbose,
+        modules: isVerbose,
+        reasons: isDebug,
+        timings: true,
+        version: isVerbose,
+    },
 
     // Choose a developer tool to enhance debugging
     // https://webpack.js.org/configuration/devtool/#devtool
