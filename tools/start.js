@@ -11,6 +11,15 @@ import clean from './clean';
 
 const isDebug = !process.argv.includes('--release');
 
+// https://webpack.js.org/configuration/watch/#watchoptions
+const watchOptions = {
+    // Watching may not work with NFS and machines in VirtualBox
+    // Uncomment next line if it is your case (use true or interval in milliseconds)
+    // poll: true,
+    // Decrease CPU or memory usage in some file systems
+    // ignored: /node_modules/,
+};
+
 function createCompilationPromise(name, compiler, config) {
     return new Promise(((resolve, reject) => {
         let timeStart = new Date();
@@ -64,8 +73,9 @@ async function start() {
     );
     serverConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 
-    // 开始打包
+    // 清除build目录
     await run(clean);
+    // 打包开始
     const multiCompiler = webpack(webpackConfig);
     const serverCompiler = multiCompiler.compilers.find(
         compiler => compiler.name === 'server',
@@ -86,6 +96,7 @@ async function start() {
     );
 
     // https://github.com/webpack/webpack-dev-middleware
+    // TODO 这里将clientCompiler放入webpackDevMiddleware会触发clientCompiler执行打包
     server.use(
         webpackDevMiddleware(clientCompiler, {
             publicPath: clientConfig.output.publicPath,
@@ -96,13 +107,14 @@ async function start() {
     );
 
     // https://github.com/glenjamin/webpack-hot-middleware
+    // TODO 客户端HMR webpackHotMiddleware不会触发clientCompiler执行打包
     server.use(webpackHotMiddleware(clientCompiler, { log: false }));
 
 
-    // TODO
+    // TODO  干啥的？
     let appPromise;
     let appPromiseResolve;
-    let appPromiseIsResolved = true;
+    let appPromiseIsResolved = true;    // 类似lock功能
     serverCompiler.hooks.compile.tap('server', () => {
         console.info('【serverCompiler.hooks.compile...】')
         if (!appPromiseIsResolved) return;
@@ -155,7 +167,7 @@ async function start() {
             });
     }
 
-    serverCompiler.watch({}, (error, stats) => {
+    serverCompiler.watch(watchOptions, (error, stats) => {
         if (app && !error && !stats.hasErrors()) {
             checkForUpdate().then(() => {
                 appPromiseIsResolved = true;
@@ -184,21 +196,21 @@ async function start() {
     appPromiseResolve();
 
     // Launch the development server with Browsersync and HMR
-    // await new Promise((resolve, reject) =>
-    //   browserSync.create().init(
-    //     {
-    //       // https://www.browsersync.io/docs/options
-    //       server: 'src/server.js',
-    //       middleware: [server],
-    //       open: false && !process.argv.includes('--silent'),
-    //       ...(isDebug ? {} : { notify: false, ui: false }),
-    //     },
-    //     (error, bs) => (error ? reject(error) : resolve(bs)),
-    //   ),
-    // );
+    await new Promise((resolve, reject) =>
+      browserSync.create().init(
+        {
+          // https://www.browsersync.io/docs/options
+          server: 'src/server.js',
+          middleware: [server],
+          open: false && !process.argv.includes('--silent'),
+          ...(isDebug ? {} : { notify: false, ui: false }),
+        },
+        (error, bs) => (error ? reject(error) : resolve(bs)),
+      ),
+    );
 
     // TODO
-    server.listen(3000, () => {console.info('listening at 3000...')})
+    // server.listen(3000, () => {console.info('listening at 3000...')})
 
     const timeEnd = new Date();
     const time = timeEnd.getTime() - timeStart.getTime();

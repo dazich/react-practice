@@ -103,9 +103,7 @@ app.get('*', async (req, res, next) => {
                     location={req.url}
                     context={context}
                 >
-                    <Switch>
-                        {routes.map((route, i) => <RouteWithSubRoutes key={i} {...route} />)}
-                    </Switch>
+                    <App/>
                 </StaticRouter>
             </Provider>
         );
@@ -136,7 +134,7 @@ app.get('*', async (req, res, next) => {
 // the first to match
         routes.some(route => {
             // use `matchPath` here
-            console.info('route',route)
+            // console.info('route',route)
             const match = matchPath(req.path, route)
             if (match)
                 promises.push(route.loadData(match))
