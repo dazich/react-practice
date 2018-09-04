@@ -13,12 +13,7 @@ const isDebug = !process.argv.includes('--release');
 
 function createCompilationPromise(name, compiler, config) {
     return new Promise(((resolve, reject) => {
-        console.info('【createCompilationPromise】', name)
         let timeStart = new Date();
-        compiler.hooks.failed.tap(name, error => {
-            timeStart = new Date();
-            console.info(`[${format(timeStart)}] Failed to compile '${name}'>>>`, error)
-        })
         compiler.hooks.compile.tap(name, () => {
             timeStart = new Date();
             console.info(`[${format(timeStart)}] Compiling '${name}'...`)

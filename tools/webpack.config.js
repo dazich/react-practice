@@ -30,6 +30,11 @@ const staticAssetName = isDebug
     ? '[path][name].[ext]?[hash:8]'
     : '[hash:8].[ext]';
 
+// CSS Nano options http://cssnano.co/
+const minimizeCssOptions = {
+    discardComments: { removeAll: true },
+};
+
 const config = {
     mode: isDebug ? 'development' : 'production',
 
