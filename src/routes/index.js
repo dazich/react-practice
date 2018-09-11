@@ -16,7 +16,7 @@ export default [
         component: Add
     },
     {
-        path: "/decrease",
+        path: "/dec",
         exact: true,
         component: Decrease
     },
