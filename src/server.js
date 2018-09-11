@@ -190,9 +190,9 @@ if (!module.hot) {
 //
 // Hot Module Replacement
 // -----------------------------------------------------------------------------
-if (module.hot) {
-  app.hot = module.hot;
-  module.hot.accept('./router');
-}
+// if (module.hot) {
+//   app.hot = module.hot;
+//   module.hot.accept('./router');
+// }
 
 export default app;
