@@ -4,6 +4,7 @@
 1. 基本webpack4环境搭建  react HMR等 √
 2. react-router4 redux √
 2.5 redux与request的处理（soga？）
+2.6 mobx vs redux
 3. ssr
 3.0 简单ssr √
 4. 学习react-starter-kit

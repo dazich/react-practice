@@ -120,7 +120,7 @@ app.get('*', async (req, res, next) => {
         addChunk('client');
         // if (route.chunk) addChunk(route.chunk);
         // if (route.chunks) route.chunks.forEach(addChunk);
-        // data.scripts = Array.from(scripts);
+        data.scripts = Array.from(scripts);
 
         // data.app = {
         //   apiUrl: config.api.clientUrl,
